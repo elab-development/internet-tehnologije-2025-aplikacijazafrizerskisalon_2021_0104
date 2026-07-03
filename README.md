@@ -1,36 +1,102 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bibi Salon - Next.js verzija (po skripti)
 
-## Getting Started
+Aplikacija za zakazivanje termina u frizerskom salonu Bibi, napravljena tačno po obrascu iz priložene
+NextJS skripte: Next.js (App Router) + TypeScript + Tailwind + Drizzle ORM (PostgreSQL) + JWT u
+httpOnly cookie-ju.
 
-First, run the development server:
+## Struktura (ista kao u skripti)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+bibi-salon-next/
+  drizzle.config.ts
+  .env.example
+  src/
+    db/
+      index.ts          -> konekcija na bazu (Pool + drizzle)
+      schema.ts          -> 5 povezanih tabela (users, categories, services, employees, appointments)
+      seed.ts            -> test podaci
+      migrations/         -> generišu se komandom `npm run db:migrate`
+    lib/
+      auth.ts            -> JWT (signAuthToken / verifyAuthToken) + cookie opcije
+    components/
+      AuthProvider.tsx    -> React Context za stanje prijave (useAuth hook)
+      AuthForm.tsx        -> zajednička login/register forma
+      Navbar.tsx, Footer.tsx
+      Button.tsx, Input.tsx, Card.tsx, Modal.tsx  -> 4 reusable komponente
+      Gallery.tsx         -> lightbox galerija (useState)
+      ServicesAccordion.tsx -> accordion za usluge (useState)
+      BookingForm.tsx     -> forma za zakazivanje (useState + useEffect)
+    app/
+      layout.tsx          -> obmotava app u <AuthProvider>
+      page.tsx             -> Početna strana
+      usluge/page.tsx       -> Usluge (server komponenta, SSR fetch)
+      login/page.tsx
+      register/page.tsx
+      zakazivanje/page.tsx  -> zaštićena strana
+      api/
+        auth/{login,register,logout,me}/route.ts
+        categories/route.ts        -> javna (glavne grupe)
+        categories/sub/route.ts    -> javna (podgrupe po parentId)
+        services/route.ts          -> GET javna, POST samo admin
+        services/[id]/route.ts     -> GET javna, PUT/DELETE samo admin
+        employees/route.ts         -> javna
+        appointments/route.ts      -> GET/POST samo prijavljeni
+        appointments/[id]/route.ts -> PUT/DELETE vlasnik ili osoblje
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Pokretanje
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 1. Baza (Docker, samo Postgres)
+```bash
+docker run --name bibi-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=bibi_salon -p 5432:5432 -d postgres:16-alpine
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 2. Environment
+```bash
+cp .env.example .env
+```
+(podesi DATABASE_URL ako koristiš drugačije podatke za bazu)
 
-## Learn More
+### 3. Instalacija i migracije
+```bash
+npm install
+npm run db:migrate
+npm run db:seed
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 4. Pokretanje aplikacije
+```bash
+npm run dev
+```
+Otvori `http://localhost:3000`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Sve odjednom kroz Docker
+```bash
+docker-compose up --build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Demo nalozi
+| Uloga | Email | Lozinka |
+|---|---|---|
+| admin | admin@bibi.rs | lozinka123 |
+| employee | jovana@bibi.rs | lozinka123 |
+| employee | marija@bibi.rs | lozinka123 |
+| client | ana@gmail.com | lozinka123 |
 
-## Deploy on Vercel
+## Stranice
+1. **Početna (`/`)** - hero, galerija frizura (lightbox), o nama, zakazivanje + dugme, usluge + dugme, adresa i radno vreme.
+2. **Usluge (`/usluge`)** - grupe i podgrupe usluga, accordion prikaz.
+3. **Login / Registracija (`/login`, `/register`)** - JWT autentifikacija kroz httpOnly cookie.
+4. **Zakazivanje (`/zakazivanje`)** - zaštićena strana, izbor usluge/frizera/termina.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Tipovi korisnika i autorizacija
+`client`, `employee`, `admin` - uloga se čuva u `users.role` i u JWT tokenu (`claims.role`), a API rute
+proveravaju ulogu pre mutacija (npr. samo admin može da menja usluge).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Korisne komande
+| Komanda | Šta radi |
+|---|---|
+| `npm run dev` | pokreće Next.js dev server |
+| `npm run db:migrate` | generiše i primenjuje Drizzle migracije (`drizzle-kit generate && push`) |
+| `npm run db:seed` | puni bazu test podacima (`tsx src/db/seed.ts`) |
+| `npx drizzle-kit studio` | grafički prikaz baze (opciono, za proveru podataka) |
