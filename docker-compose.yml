@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: bibi_db
+    restart: always
+    environment:
+      POSTGRES_DB: bibi_salon
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - bibi_db_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: bibi_app
+    restart: always
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@db:5432/bibi_salon
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+volumes:
+  bibi_db_data:
