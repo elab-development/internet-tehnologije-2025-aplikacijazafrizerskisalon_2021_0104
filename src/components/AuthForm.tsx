@@ -95,9 +95,7 @@ export default function AuthForm({ mode }: Props) {
           )}
         </p>
 
-        {mode === "login" && (
-          <p className="mt-2 text-xs text-stone-400">Demo nalog: ana@gmail.com / lozinka123</p>
-        )}
+        
       </div>
     </div>
   );
