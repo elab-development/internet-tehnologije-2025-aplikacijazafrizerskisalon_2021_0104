@@ -27,12 +27,16 @@ export default function Navbar() {
           <Link href="/" className="hover:text-rose-700">Početna</Link>
           <Link href="/usluge" className="hover:text-rose-700">Usluge</Link>
 
-          {/* Zakazivanje - samo za prijavljene klijente */}
+          {/* samo za prijavljene klijente */}
           {status === "authenticated" && user.role === "client" && (
-            <Link href="/zakazivanje" className="hover:text-rose-700">Zakazivanje</Link>
-          )}
+  <>
+    <Link href="/zakazivanje" className="hover:text-rose-700">Zakazivanje</Link>
+    <Link href="/profil" className="hover:text-rose-700">Profil</Link>
+  </>
+)}
 
-          {/* Admin panel - samo za admin i employee */}
+
+          {/*  samo za admin i employee */}
           {status === "authenticated" && (user.role === "admin" || user.role === "employee") && (
             <Link href="/admin" className="hover:text-rose-700">Upravljanje terminima</Link>
           )}
