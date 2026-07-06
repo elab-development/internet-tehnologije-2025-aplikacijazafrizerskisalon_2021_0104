@@ -31,6 +31,7 @@ npm run dev
 - Login/Registracija
 - Zakazivanje
 - Admin panel
+- Profil
 
 ## Demo nalozi
 - admin@bibi.rs / lozinka123
